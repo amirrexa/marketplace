@@ -12,9 +12,11 @@ model User {
   email     String    @unique
   password  String
   role      String    @default("BUYER")
-  products  Product[] @relation("UserProducts") // ✅ added relation name
+  products  Product[] @relation("UserProducts")
   createdAt DateTime  @default(now())
   orders    Order[]   @relation("BuyerOrders")
+    name      String?
+
 }
 
 model Product {
@@ -24,9 +26,9 @@ model Product {
   price       Float
   fileUrl     String
   sellerId    String
-  seller      User     @relation("UserProducts", fields: [sellerId], references: [id]) // ✅ opposite relation
+  seller      User     @relation("UserProducts", fields: [sellerId], references: [id])
   createdAt   DateTime @default(now())
-  orders      Order[] // ✅ Add this to complete the relation
+  orders      Order[]
 }
 
 model Order {
