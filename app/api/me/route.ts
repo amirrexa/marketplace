@@ -1,11 +1,26 @@
+// app/api/me/route.ts
+
 import { cookies } from "next/headers";
 import { verifyJwt } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-    const token = cookies().get("token")?.value;
+    const cookieStore = await cookies(); // ✅ fix
+    const token = cookieStore.get("token")?.value;
     const payload = verifyJwt(token || "");
 
-    console.log("🔍 JWT Payload:", payload);
+    if (!payload || typeof payload !== "object" || !("id" in payload)) {
+        return Response.json({ user: null });
+    }
 
-    return Response.json({ user: payload });
+    const user = await prisma.user.findUnique({
+        where: { id: payload.id },
+        select: {
+            id: true,
+            email: true,
+            role: true,
+        },
+    });
+
+    return Response.json({ user });
 }

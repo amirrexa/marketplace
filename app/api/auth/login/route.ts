@@ -1,3 +1,5 @@
+// app/api/auth/login/route.ts
+
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcrypt";
 import { signJwt } from "@/lib/auth";
@@ -13,10 +15,9 @@ export async function POST(req: Request) {
                 id: true,
                 email: true,
                 password: true,
-                role: true, // ✅ explicitly include it
+                role: true,
             },
         });
-
 
         if (!user || !(await compare(password, user.password))) {
             return Response.json({ message: "Invalid credentials" }, { status: 401 });
@@ -25,18 +26,17 @@ export async function POST(req: Request) {
         const token = signJwt({
             id: user.id,
             email: user.email,
-            role: user.role, // ✅ include this in payload
+            role: user.role,
         });
 
-
-        const cookieStore = await cookies(); // ✅ this is needed in your version
+        // ✅ MUST AWAIT in new Next.js
+        const cookieStore = await cookies();
         cookieStore.set("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             path: "/",
             maxAge: 60 * 60 * 24 * 7,
         });
-
 
         return Response.json({ message: "Login successful" });
     } catch (error) {
