@@ -5,10 +5,12 @@ import { verifyJwt } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { redirect } from "next/navigation";
 
+import { ShoppingCart, User, LayoutDashboard } from "lucide-react";
+
 const links = [
-    { href: "/dashboard/buyer", label: "Browse" },
-    { href: "/dashboard/buyer/cart", label: "Cart" },
-    { href: "/dashboard/profile", label: "Profile" },
+    { href: "/dashboard/buyer", label: "Browse", icon: LayoutDashboard },
+    { href: "/dashboard/buyer/cart", label: "Cart", icon: ShoppingCart },
+    { href: "/dashboard/profile", label: "Profile", icon: User },
 ];
 
 export default async function Sidebar() {
@@ -17,7 +19,7 @@ export default async function Sidebar() {
 
     const payload = verifyJwt(token || "");
     if (!payload || typeof payload !== "object" || !("id" in payload)) {
-        return redirect("/login"); // fallback just in case
+        return redirect("/login");
     }
 
     const user = await prisma.user.findUnique({
@@ -27,19 +29,20 @@ export default async function Sidebar() {
 
     return (
         <aside className="w-64 border-r h-full p-6 bg-white">
-            <h2 className="text-xl font-bold mb-6">
-                👋 {user?.name ? `Hello, ${user.name}` : "Welcome!"}
+            <h2 className="text-lg font-medium mb-6 text-muted-foreground">
+                {user?.name ? `Hello, ${user.name}` : "Welcome!"}
             </h2>
             <nav className="space-y-2">
-                {links.map(({ href, label }) => (
+                {links.map(({ href, label, icon: Icon }) => (
                     <Link
                         key={href}
                         href={href}
                         className={cn(
-                            "block px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100",
-                            href === "/" && "font-semibold"
+                            "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100",
+                            // You could use usePathname() for active link highlighting in client component
                         )}
                     >
+                        <Icon className="w-4 h-4" />
                         {label}
                     </Link>
                 ))}
