@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ConfirmRequestModal } from "@/components/dashboard/ConfirmRequestModal";
+import { useAtom, useSetAtom } from "jotai";
+import { cartAtom, addToCartAtom, removeFromCartAtom } from "@/lib/atoms/cart";
+
 
 type Product = {
     id: string;
@@ -17,30 +19,10 @@ type Product = {
 export default function BuyerDashboardPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [confirmOpen, setConfirmOpen] = useState(false);
-    const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+    const [cart] = useAtom(cartAtom);
+    const addToCart = useSetAtom(addToCartAtom);
+    const removeFromCart = useSetAtom(removeFromCartAtom);
 
-    const handleRequestProduct = async () => {
-        if (!selectedProductId) return;
-        setIsLoading(true);
-
-        const res = await fetch("/api/orders", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ productId: selectedProductId }),
-        });
-
-        const data = await res.json();
-        setIsLoading(false);
-        setConfirmOpen(false);
-        setSelectedProductId(null);
-
-        if (res.ok) {
-            toast.success("Product requested successfully");
-        } else {
-            toast.error(data.message || "Request failed");
-        }
-    };
 
 
     useEffect(() => {
@@ -58,42 +40,43 @@ export default function BuyerDashboardPage() {
             <h1 className="text-3xl font-bold mb-6 text-center">🛍 Browse Products</h1>
 
             <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {products.map((product) => (
-                    <Card key={product.id} className="p-4 flex flex-col justify-between">
-                        <div>
-                            <img
-                                src={product.fileUrl}
-                                alt={product.title}
-                                className="rounded-md mb-3 object-cover w-full h-40"
-                            />
-                            <h3 className="text-lg font-semibold">{product.title}</h3>
-                            <p className="text-muted-foreground text-sm">
-                                ${product.price.toFixed(2)}
-                            </p>
-                        </div>
-                        <Button
-                            className="mt-4"
-                            onClick={() => {
-                                setSelectedProductId(product.id);
-                                setConfirmOpen(true);
-                            }}
-                            disabled={isLoading}
-                        >
-                            {isLoading && selectedProductId === product.id ? "Requesting..." : "Request Product"}
-                        </Button>
+                {products.map((product) => {
+                    const isInCart = cart.includes(product.id);
 
-                    </Card>
-                ))}
+                    return (
+                        <Card key={product.id} className="p-4 flex flex-col justify-between">
+                            <div>
+                                <img
+                                    src={product.fileUrl}
+                                    alt={product.title}
+                                    className="rounded-md mb-3 object-cover w-full h-40"
+                                />
+                                <h3 className="text-lg font-semibold">{product.title}</h3>
+                                <p className="text-muted-foreground text-sm">
+                                    ${product.price.toFixed(2)}
+                                </p>
+                            </div>
+
+                            <Button
+                                className="mt-4"
+                                variant={isInCart ? "secondary" : "default"}
+                                onClick={() => {
+                                    if (isInCart) {
+                                        removeFromCart(product.id);
+                                        toast.info("Removed from cart");
+                                    } else {
+                                        addToCart(product.id);
+                                        toast.success("Added to cart");
+                                    }
+                                }}
+                            >
+                                {isInCart ? "In Cart" : "Add to Cart"}
+                            </Button>
+                        </Card>
+                    );
+                })}
+
             </section>
-            <ConfirmRequestModal
-                open={confirmOpen}
-                onCancel={() => {
-                    setConfirmOpen(false);
-                    setSelectedProductId(null);
-                }}
-                onConfirm={handleRequestProduct}
-            />
-
         </main>
     );
 }
