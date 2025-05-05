@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAtom, useSetAtom } from "jotai";
 import { cartAtom, addToCartAtom, removeFromCartAtom } from "@/lib/atoms/cart";
+import Image from "next/image";
 
 
 type Product = {
@@ -18,7 +19,6 @@ type Product = {
 
 export default function BuyerDashboardPage() {
     const [products, setProducts] = useState<Product[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
     const [cart] = useAtom(cartAtom);
     const addToCart = useSetAtom(addToCartAtom);
     const removeFromCart = useSetAtom(removeFromCartAtom);
@@ -46,7 +46,7 @@ export default function BuyerDashboardPage() {
                     return (
                         <Card key={product.id} className="p-4 flex flex-col justify-between">
                             <div>
-                                <img
+                                <Image
                                     src={product.fileUrl}
                                     alt={product.title}
                                     className="rounded-md mb-3 object-cover w-full h-40"

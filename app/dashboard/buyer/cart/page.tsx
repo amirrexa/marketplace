@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import Image from "next/image";
 
 type Product = {
     id: string;
@@ -82,7 +83,7 @@ export default function CartPage() {
                         {cartItems.map((product) => (
                             <Card key={product.id} className="p-4 flex flex-col justify-between">
                                 <div>
-                                    <img
+                                    <Image
                                         src={product.fileUrl}
                                         alt={product.title}
                                         className="rounded-md mb-3 object-cover w-full h-40"
