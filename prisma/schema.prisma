@@ -8,10 +8,13 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        String    @id @default(uuid())
+  email     String    @unique
   password  String
-  createdAt DateTime @default(now())
+  role      String    @default("BUYER")
+  products  Product[] @relation("UserProducts") // ✅ added relation name
+  createdAt DateTime  @default(now())
+  orders    Order[]   @relation("BuyerOrders")
 }
 
 model Product {
@@ -21,5 +24,16 @@ model Product {
   price       Float
   fileUrl     String
   sellerId    String
+  seller      User     @relation("UserProducts", fields: [sellerId], references: [id]) // ✅ opposite relation
   createdAt   DateTime @default(now())
+  orders      Order[] // ✅ Add this to complete the relation
+}
+
+model Order {
+  id        String   @id @default(uuid())
+  buyerId   String
+  productId String
+  buyer     User     @relation("BuyerOrders", fields: [buyerId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
 }

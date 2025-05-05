@@ -1,15 +1,36 @@
+// middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 import { verifyJwt } from "@/lib/auth";
 
-export function middleware(request: NextRequest) {
-    const token = request.cookies.get("token")?.value;
-    const isLoggedIn = !!(token && verifyJwt(token));
+export async function middleware(req: NextRequest) {
+    const token = req.cookies.get("token")?.value;
+    const url = req.nextUrl.clone();
 
-    const isProtectedRoute = request.nextUrl.pathname.startsWith("/dashboard");
+    // If no token, redirect to login
+    if (!token) {
+        url.pathname = "/login";
+        return NextResponse.redirect(url);
+    }
 
-    if (isProtectedRoute && !isLoggedIn) {
-        return NextResponse.redirect(new URL("/login", request.url));
+    const payload = verifyJwt(token);
+
+    // If token is invalid or role is missing, redirect to login
+    if (!payload || typeof payload !== "object" || !("id" in payload) || !("role" in payload)) {
+        url.pathname = "/login";
+        return NextResponse.redirect(url);
+    }
+
+    const userRole = payload.role;
+
+    // 🔐 Only allow SELLERs on /dashboard/seller
+    if (req.nextUrl.pathname.startsWith("/dashboard/seller") && userRole !== "SELLER") {
+        url.pathname = "/unauthorized";
+        return NextResponse.redirect(url);
     }
 
     return NextResponse.next();
 }
+
+export const config = {
+    matcher: ["/dashboard/:path*"],
+};
