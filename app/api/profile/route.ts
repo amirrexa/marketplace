@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { verifyJwt } from "@/lib/auth";
 
 export async function GET() {
-    const token = cookies().get("token")?.value;
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
     const payload = verifyJwt(token || "");
 
     if (!payload || typeof payload !== "object" || !("id" in payload)) {
@@ -19,7 +20,8 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-    const token = cookies().get("token")?.value;
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
     const payload = verifyJwt(token || "");
 
     if (!payload || typeof payload !== "object" || !("id" in payload)) {
