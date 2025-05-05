@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { ConfirmRequestModal } from "@/components/dashboard/ConfirmRequestModal";
 
 type Product = {
     id: string;
@@ -15,6 +16,32 @@ type Product = {
 
 export default function BuyerDashboardPage() {
     const [products, setProducts] = useState<Product[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+
+    const handleRequestProduct = async () => {
+        if (!selectedProductId) return;
+        setIsLoading(true);
+
+        const res = await fetch("/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId: selectedProductId }),
+        });
+
+        const data = await res.json();
+        setIsLoading(false);
+        setConfirmOpen(false);
+        setSelectedProductId(null);
+
+        if (res.ok) {
+            toast.success("Product requested successfully");
+        } else {
+            toast.error(data.message || "Request failed");
+        }
+    };
+
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -46,31 +73,27 @@ export default function BuyerDashboardPage() {
                         </div>
                         <Button
                             className="mt-4"
-                            onClick={async () => {
-                                const res = await fetch("/api/orders", {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                    },
-                                    body: JSON.stringify({ productId: product.id }),
-                                });
-
-                                const data = await res.json();
-
-                                if (res.ok) {
-                                    toast.success("Request submitted ✅");
-                                } else {
-                                    toast.error(data.message || "Request failed");
-                                }
+                            onClick={() => {
+                                setSelectedProductId(product.id);
+                                setConfirmOpen(true);
                             }}
+                            disabled={isLoading}
                         >
-                            Request Product
+                            {isLoading && selectedProductId === product.id ? "Requesting..." : "Request Product"}
                         </Button>
-
 
                     </Card>
                 ))}
             </section>
+            <ConfirmRequestModal
+                open={confirmOpen}
+                onCancel={() => {
+                    setConfirmOpen(false);
+                    setSelectedProductId(null);
+                }}
+                onConfirm={handleRequestProduct}
+            />
+
         </main>
     );
 }
