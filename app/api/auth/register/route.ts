@@ -23,5 +23,5 @@ export async function POST(req: Request) {
         },
     });
 
-    return Response.json({ message: "Account created ✅" });
+    return Response.json({ message: "Account created" });
 }

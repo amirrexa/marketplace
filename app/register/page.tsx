@@ -39,7 +39,7 @@ export default function RegisterPage() {
             // ✅ Optional short delay before redirect
             setTimeout(() => {
                 router.push("/login");
-            }, 800);
+            }, 300);
         } catch {
             toast.error("Registration response error");
         }

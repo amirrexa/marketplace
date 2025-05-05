@@ -1,34 +1,44 @@
-// middleware.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { verifyJwt } from "@/lib/auth";
 
-export async function middleware(req: NextRequest) {
+export function middleware(req: NextRequest) {
     const token = req.cookies.get("token")?.value;
-    const url = req.nextUrl.clone();
+    const pathname = req.nextUrl.pathname;
 
-    // If no token, redirect to login
-    if (!token) {
-        url.pathname = "/login";
-        return NextResponse.redirect(url);
+    const publicRoutes = ["/", "/login", "/register"];
+    if (publicRoutes.includes(pathname)) return NextResponse.next();
+
+    const payload = verifyJwt(token || "");
+    if (!payload || typeof payload !== "object" || !("role" in payload)) {
+        return NextResponse.redirect(new URL("/login", req.url));
     }
 
-    const payload = verifyJwt(token);
+    const role = payload.role;
 
-    // If token is invalid or role is missing, redirect to login
-    if (!payload || typeof payload !== "object" || !("id" in payload) || !("role" in payload)) {
-        url.pathname = "/login";
-        return NextResponse.redirect(url);
+    // 🔐 Restrict SELLER-only area
+    if (pathname.startsWith("/dashboard/seller") && role !== "SELLER" && role !== "ADMIN") {
+        return NextResponse.redirect(new URL("/dashboard/buyer", req.url));
     }
 
-    const userRole = payload.role;
-
-    // 🔐 Only allow SELLERs on /dashboard/seller
-    if (req.nextUrl.pathname.startsWith("/dashboard/seller") && userRole !== "SELLER") {
-        url.pathname = "/unauthorized";
-        return NextResponse.redirect(url);
+    // 🔐 Restrict BUYER-only area (exclude sellers and admins from restricted pages if needed)
+    if (pathname.startsWith("/dashboard/buyer") && role === "BUYER") {
+        // Buyer is valid, continue
+        return NextResponse.next();
     }
 
-    return NextResponse.next();
+    // ✅ Let SELLER browse buyer dashboard
+    if (pathname.startsWith("/dashboard/buyer") && role === "SELLER") {
+        return NextResponse.next();
+    }
+
+    // ✅ Let ADMIN go everywhere
+    if (role === "ADMIN") {
+        return NextResponse.next();
+    }
+
+    // 🔒 Default fallback
+    return NextResponse.redirect(new URL("/login", req.url));
 }
 
 export const config = {
