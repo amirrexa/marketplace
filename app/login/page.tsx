@@ -3,33 +3,65 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsLoading(true);
 
         const res = await fetch("/api/auth/login", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
         });
 
-        // Only try to parse JSON if we got something useful
+        setIsLoading(false);
+
         if (!res.ok) {
-            alert("Login failed: " + res.status);
+            const errorText = await res.text();
+            toast.error("Login failed: " + errorText);
             return;
         }
 
         try {
             const data = await res.json();
-            alert(data.message || "Logged in!");
-        } catch (err) {
-            alert("Login worked, but response had no JSON.");
+            toast.success(data.message || "Logged in!");
+
+            // ✅ Decode token from cookie if available
+            const token = document.cookie
+                .split("; ")
+                .find((row) => row.startsWith("token="))
+                ?.split("=")[1];
+
+            if (token) {
+                const payload = JSON.parse(atob(token.split(".")[1]));
+                const role = payload.role;
+
+                // ✅ Redirect based on user role
+                switch (role) {
+                    case "SELLER":
+                        router.push("/dashboard/seller");
+                        break;
+                    case "ADMIN":
+                        router.push("/dashboard/admin");
+                        break;
+                    default:
+                        router.push("/dashboard/buyer");
+                        break;
+                }
+            } else {
+                router.push("/dashboard/buyer"); // fallback
+            }
+        } catch {
+            toast.success("Login worked, but couldn't read role.");
+            router.push("/dashboard/buyer");
         }
     };
 
@@ -52,8 +84,8 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
-                <Button type="submit" className="w-full">
-                    Sign In
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
             </form>
         </div>
