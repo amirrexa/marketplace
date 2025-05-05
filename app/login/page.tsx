@@ -34,34 +34,30 @@ export default function LoginPage() {
             const data = await res.json();
             toast.success(data.message || "Logged in!");
 
-            // ✅ Decode token from cookie if available
-            const token = document.cookie
-                .split("; ")
-                .find((row) => row.startsWith("token="))
-                ?.split("=")[1];
+            // ✅ Get user role from /api/me
+            const meRes = await fetch("/api/me");
+            const meData = await meRes.json();
 
-            if (token) {
-                const payload = JSON.parse(atob(token.split(".")[1]));
-                const role = payload.role;
-
-                // ✅ Redirect based on user role
-                switch (role) {
-                    case "SELLER":
-                        router.push("/dashboard/seller");
-                        break;
-                    case "ADMIN":
-                        router.push("/dashboard/admin");
-                        break;
-                    default:
-                        router.push("/dashboard/buyer");
-                        break;
-                }
-            } else {
-                router.push("/dashboard/buyer"); // fallback
+            if (!meData.user) {
+                toast.error("Login succeeded, but failed to fetch user info.");
+                return;
             }
-        } catch {
-            toast.success("Login worked, but couldn't read role.");
-            router.push("/dashboard/buyer");
+
+            const role = meData.user.role;
+
+            switch (role) {
+                case "SELLER":
+                    router.push("/dashboard/seller");
+                    break;
+                case "ADMIN":
+                    router.push("/dashboard/admin");
+                    break;
+                default:
+                    router.push("/dashboard/buyer");
+                    break;
+            }
+        } catch (err) {
+            toast.error("Login succeeded, but response was invalid.");
         }
     };
 

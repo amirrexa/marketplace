@@ -16,32 +16,30 @@ export default function RegisterPage() {
         e.preventDefault();
         setIsLoading(true);
 
-        const res = await fetch("/api/auth/register", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email, password }),
-        });
-
-        setIsLoading(false);
-
         try {
+            const res = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
+
             const data = await res.json();
+            setIsLoading(false);
 
             if (!res.ok) {
                 toast.error(data.message || "Registration failed");
                 return;
             }
 
-            toast.success(data.message || "Registered successfully!");
+            toast.success(data.message || "Account created!");
 
-            // ✅ Optional short delay before redirect
+            // ✅ Redirect after short delay
             setTimeout(() => {
                 router.push("/login");
-            }, 300);
+            }, 500);
         } catch {
-            toast.error("Registration response error");
+            setIsLoading(false);
+            toast.error("Server error. Please try again.");
         }
     };
 
