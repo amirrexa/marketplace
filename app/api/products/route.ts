@@ -31,6 +31,10 @@ export async function POST(req: Request) {
 
         const payload = verifyJwt(token);
 
+        if (payload?.role !== "SELLER" && payload?.role !== "ADMIN") {
+            return Response.json({ message: "Forbidden" }, { status: 403 });
+        }
+
         if (!payload || typeof payload !== "object" || !("id" in payload)) {
             return Response.json({ message: "Invalid token" }, { status: 401 });
         }
