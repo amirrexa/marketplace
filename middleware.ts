@@ -7,17 +7,12 @@ export async function middleware(req: NextRequest) {
     const token = req.cookies.get("token")?.value;
     const pathname = req.nextUrl.pathname;
 
-    console.log("🔍 Path:", pathname);
-    console.log("🍪 Token:", token?.slice(0, 30) + "...");
-
     const publicRoutes = ["/", "/login", "/register"];
     if (publicRoutes.includes(pathname)) return NextResponse.next();
 
     const payload = await verifyJwtEdge(token || "");
-    console.log("🧠 Payload:", payload);
 
     if (!payload || typeof payload !== "object" || !("role" in payload)) {
-        console.log("❌ Invalid or missing role — redirecting to /login");
         return NextResponse.redirect(new URL("/login", req.url));
     }
 
