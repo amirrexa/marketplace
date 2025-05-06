@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken"
-import { jwtVerify, SignJWT } from "jose";
+import { jwtVerify } from "jose";
 
 const secret = process.env.JWT_SECRET!;
 

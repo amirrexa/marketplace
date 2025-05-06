@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import { verifyJwt, verifyJwtEdge } from "@/lib/auth";
+import { verifyJwt } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
 export async function DELETE(req: NextRequest) {
