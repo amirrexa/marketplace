@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
             email: true,
             role: true,
             createdAt: true,
+            name: true,
         },
         orderBy: { createdAt: "desc" },
     });
