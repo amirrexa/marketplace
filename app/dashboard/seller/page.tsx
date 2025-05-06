@@ -114,6 +114,8 @@ export default function SellerDashboardPage() {
                 {products.map((product) => (
                     <Card key={product.id} className="p-4">
                         <Image
+                            width={500}
+                            height={400}
                             src={product.fileUrl}
                             alt={product.title}
                             className="rounded-md mb-3 object-cover w-full h-40"

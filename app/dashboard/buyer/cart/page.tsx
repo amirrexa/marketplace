@@ -84,6 +84,8 @@ export default function CartPage() {
                             <Card key={product.id} className="p-4 flex flex-col justify-between">
                                 <div>
                                     <Image
+                                        width={500}
+                                        height={400}
                                         src={product.fileUrl}
                                         alt={product.title}
                                         className="rounded-md mb-3 object-cover w-full h-40"
