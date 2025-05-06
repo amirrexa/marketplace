@@ -7,7 +7,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    unoptomized: true,
+    unoptimized: true,
   }
 }
 export default nextConfig;
