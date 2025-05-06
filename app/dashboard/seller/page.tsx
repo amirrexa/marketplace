@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import EditProductModal from "@/components/dashboard/EditProductModal";
+import Image from "next/image";
 
 type Product = {
     id: string;
@@ -112,7 +113,7 @@ export default function SellerDashboardPage() {
             <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {products.map((product) => (
                     <Card key={product.id} className="p-4">
-                        <img
+                        <Image
                             src={product.fileUrl}
                             alt={product.title}
                             className="rounded-md mb-3 object-cover w-full h-40"

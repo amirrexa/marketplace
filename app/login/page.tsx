@@ -56,7 +56,7 @@ export default function LoginPage() {
                     router.push("/dashboard/buyer");
                     break;
             }
-        } catch (err) {
+        } catch {
             toast.error("Login succeeded, but response was invalid.");
         }
     };
