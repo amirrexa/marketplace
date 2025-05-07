@@ -32,12 +32,12 @@ model Product {
 }
 
 model Order {
-  id        String   @id @default(uuid())
+  id        String      @id @default(uuid())
   buyerId   String
   productId String
-  buyer     User     @relation("BuyerOrders", fields: [buyerId], references: [id])
-  product   Product  @relation(fields: [productId], references: [id])
-  createdAt DateTime @default(now())
+  buyer     User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  product   Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
   status    OrderStatus @default(PENDING)
 }
 

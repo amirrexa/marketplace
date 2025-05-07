@@ -1,23 +1,22 @@
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import { verifyJwt } from "@/lib/auth";
+import { verifyJwtEdge } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
 export async function DELETE(req: NextRequest) {
-    const url = new URL(req.url);
-    const id = url.pathname.split("/").pop();
+    const id = req.nextUrl.pathname.split("/").pop();
 
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
-    const payload = token ? await verifyJwt(token) : null;
+    const payload = token ? verifyJwtEdge(token) : null;
 
-    if (!id || !payload || typeof payload !== "object" || !("id" in payload)) {
+    if (!id || !payload || typeof payload !== "object" || !("id" in payload) || !("role" in payload)) {
         return Response.json({ message: "Unauthorized or missing ID" }, { status: 401 });
     }
 
     const product = await prisma.product.findUnique({ where: { id } });
 
-    if (!product || product.sellerId !== payload.id) {
+    if (!product || (payload.role === "SELLER" && product.sellerId !== payload.id)) {
         return Response.json({ message: "Not allowed" }, { status: 403 });
     }
 
@@ -27,14 +26,13 @@ export async function DELETE(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-    const url = new URL(req.url);
-    const id = url.pathname.split("/").pop();
+    const id = req.nextUrl.pathname.split("/").pop();
 
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
+    const payload = token ? verifyJwtEdge(token) : null;
 
-    const payload = token ? await verifyJwt(token) : null;
-    if (!id || !payload || typeof payload !== "object" || !("id" in payload)) {
+    if (!id || !payload || typeof payload !== "object" || !("id" in payload) || !("role" in payload)) {
         return Response.json({ message: "Invalid token or missing ID" }, { status: 401 });
     }
 
@@ -47,7 +45,7 @@ export async function PATCH(req: NextRequest) {
 
     const product = await prisma.product.findUnique({ where: { id } });
 
-    if (!product || product.sellerId !== payload.id) {
+    if (!product || (payload.role === "SELLER" && product.sellerId !== payload.id)) {
         return Response.json({ message: "Not allowed" }, { status: 403 });
     }
 
@@ -57,4 +55,23 @@ export async function PATCH(req: NextRequest) {
     });
 
     return Response.json({ message: "Product updated" });
+}
+
+export async function GET() {
+    const cookieStore = cookies();
+    const token = (await cookieStore).get("token")?.value;
+    const payload = verifyJwt(token || "");
+
+    if (!payload || typeof payload !== "object" || !("id" in payload) || !("role" in payload)) {
+        return Response.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const isSeller = payload.role === "SELLER";
+
+    const products = await prisma.product.findMany({
+        where: isSeller ? { sellerId: payload.id } : undefined,
+        orderBy: { createdAt: "desc" },
+    });
+
+    return Response.json({ products });
 }

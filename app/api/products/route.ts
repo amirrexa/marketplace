@@ -9,9 +9,19 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// 🔍 GET all products (can be filtered later by sellerId)
+// 🔍 GET all products (admins see all, sellers see their own)
 export async function GET() {
+    const cookieStore = cookies();
+    const token = (await cookieStore).get("token")?.value;
+
+    const payload = verifyJwt(token || "");
+
+    if (!payload || typeof payload !== "object" || !("id" in payload) || !("role" in payload)) {
+        return Response.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const products = await prisma.product.findMany({
+        where: payload.role === "SELLER" ? { sellerId: payload.id } : undefined,
         orderBy: { createdAt: "desc" },
     });
 
@@ -21,33 +31,20 @@ export async function GET() {
 // 📦 POST a new product with file upload
 export async function POST(req: Request) {
     try {
-        // ✅ Extract and verify JWT
         const cookieStore = cookies();
         const token = (await cookieStore).get("token")?.value;
+        const payload = verifyJwt(token || "");
 
-        if (!token) {
-            return Response.json({ message: "Unauthorized" }, { status: 401 });
+        if (
+            !payload ||
+            typeof payload !== "object" ||
+            !("id" in payload) ||
+            !("role" in payload) ||
+            (payload.role !== "SELLER" && payload.role !== "ADMIN")
+        ) {
+            return Response.json({ message: "Invalid token or insufficient permissions" }, { status: 403 });
         }
 
-        const payload = verifyJwt(token);
-
-        if (!payload || typeof payload !== "object" || !("id" in payload) || !("role" in payload)) {
-            return Response.json({ message: "Invalid token or insufficient permissions" }, { status: 401 });
-        }
-
-        if (payload.role !== "SELLER" && payload.role !== "ADMIN") {
-            return Response.json({ message: "Forbidden" }, { status: 403 });
-        }
-
-
-        if (!payload || typeof payload !== "object" || !("id" in payload)) {
-            return Response.json({ message: "Invalid token" }, { status: 401 });
-        }
-
-        const userId = (payload as { id: string }).id;
-
-
-        // ✅ Handle form data
         const formData = await req.formData();
         const title = formData.get("title") as string;
         const description = formData.get("description") as string;
@@ -58,7 +55,6 @@ export async function POST(req: Request) {
             return Response.json({ message: "Missing fields" }, { status: 400 });
         }
 
-        // ✅ Upload file to Supabase Storage
         const filename = `${Date.now()}-${randomUUID()}-${file.name}`;
         const fileBuffer = Buffer.from(await file.arrayBuffer());
 
@@ -75,14 +71,13 @@ export async function POST(req: Request) {
 
         const publicUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/products/${filename}`;
 
-        // ✅ Save product with real sellerId
         await prisma.product.create({
             data: {
                 title,
                 description,
                 price,
                 fileUrl: publicUrl,
-                sellerId: userId,
+                sellerId: payload.id,
             },
         });
 
