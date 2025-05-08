@@ -34,7 +34,6 @@ export default function LoginPage() {
             const data = await res.json();
             toast.success(data.message || "Logged in!");
 
-            // ✅ Get user role from /api/me
             const meRes = await fetch("/api/me");
             const meData = await meRes.json();
 
@@ -62,12 +61,12 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="min-h-screen flex items-center justify-center p-4 bg-background text-foreground">
             <form
                 onSubmit={handleLogin}
-                className="w-full max-w-sm bg-white p-6 rounded-xl shadow space-y-4"
+                className="w-full max-w-sm bg-card p-6 rounded-xl shadow space-y-4 border border-border"
             >
-                <h2 className="text-xl font-semibold">Login</h2>
+                <h2 className="text-xl font-semibold text-muted-foreground">Login</h2>
                 <Input
                     type="email"
                     placeholder="Email"

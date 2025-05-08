@@ -41,7 +41,7 @@ export default function ProfilePage() {
 
     return (
         <main className="max-w-xl mx-auto px-4 py-10">
-            <h1 className="text-2xl font-bold mb-6 text-center">👤 Profile</h1>
+            <h1 className="text-2xl font-bold mb-6 text-center">Profile</h1>
 
             {loading ? (
                 <p className="text-muted-foreground text-sm text-center">Loading...</p>

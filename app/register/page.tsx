@@ -33,7 +33,6 @@ export default function RegisterPage() {
 
             toast.success(data.message || "Account created!");
 
-            // ✅ Redirect after short delay
             setTimeout(() => {
                 router.push("/login");
             }, 500);
@@ -44,12 +43,12 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="min-h-screen flex items-center justify-center p-4 bg-background text-foreground transition-colors">
             <form
                 onSubmit={handleSubmit}
-                className="w-full max-w-sm bg-white p-6 rounded-xl shadow space-y-4"
+                className="w-full max-w-sm bg-card text-foreground p-6 rounded-xl shadow space-y-4 border border-border"
             >
-                <h2 className="text-xl font-semibold">Register</h2>
+                <h2 className="text-xl text-muted-foreground font-semibold">Register</h2>
                 <Input
                     type="email"
                     placeholder="Email"
