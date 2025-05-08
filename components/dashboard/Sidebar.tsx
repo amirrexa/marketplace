@@ -5,27 +5,31 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-    ShoppingCart,
-    User,
-    LayoutDashboard,
-    ShieldCheck,
-    Store,
-    Users,
-    Package,
-    Receipt,
-} from "lucide-react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+    Sheet,
+    SheetTrigger,
+    SheetContent,
+    SheetClose,
+    SheetTitle,
+} from "@/components/ui/sheet";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Menu } from "lucide-react";
+import { navItemsByRole, type NavItem } from "@/lib/navItems";
 
 export default function Sidebar() {
     const pathname = usePathname();
     const [name, setName] = useState<string>("");
-    const [role, setRole] = useState<string>("");
+    const [role, setRole] = useState<"BUYER" | "SELLER" | "ADMIN" | "">("");
+    const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
         async function fetchProfile() {
             const res = await fetch("/api/me");
             const data = await res.json();
-
             if (data.user) {
                 setName(data.user.name || "");
                 setRole(data.user.role);
@@ -33,68 +37,113 @@ export default function Sidebar() {
         }
 
         fetchProfile();
+        setIsMounted(true);
     }, []);
 
-    return (
-        <aside className="w-64 border-r h-full p-6 bg-white">
-            <h2 className="text-lg font-medium mb-6 text-muted-foreground">
-                {name ? `Hello, ${name}` : "Welcome!"}
-            </h2>
-
-            <nav className="space-y-2">
-                {/* Admin Section */}
-                {role === "ADMIN" && (
-                    <Accordion type="single" collapsible className="w-full">
-                        <AccordionItem value="admin">
-                            <AccordionTrigger className="px-3 py-2 text-sm font-medium hover:bg-gray-100 rounded-md">
-                                <div className="flex items-center gap-2">
-                                    <ShieldCheck className="w-4 h-4" />
-                                    Admin
-                                </div>
-                            </AccordionTrigger>
-                            <AccordionContent className="ml-6 mt-1 space-y-1">
-                                <SidebarLink href="/dashboard/admin/users" label="Users" icon={Users} pathname={pathname} />
-                                <SidebarLink href="/dashboard/admin/products" label="Products" icon={Package} pathname={pathname} />
-                                <SidebarLink href="/dashboard/admin/orders" label="Orders" icon={Receipt} pathname={pathname} />
-                            </AccordionContent>
-                        </AccordionItem>
-                    </Accordion>
-                )}
-
-                {/* Seller Link */}
-                {(role === "SELLER" || role === "ADMIN") && (
-                    <SidebarLink href="/dashboard/seller" label="Seller Dashboard" icon={Store} pathname={pathname} />
-                )}
-
-                {/* Buyer Links */}
-                <SidebarLink href="/dashboard/buyer" label="Browse" icon={LayoutDashboard} pathname={pathname} />
-                <SidebarLink href="/dashboard/buyer/cart" label="Cart" icon={ShoppingCart} pathname={pathname} />
-                <SidebarLink href="/dashboard/profile" label="Profile" icon={User} pathname={pathname} />
-            </nav>
-        </aside>
-    );
-}
-
-type SidebarLinkProps = {
-    href: string;
-    label: string;
-    icon: React.ElementType;
-    pathname: string;
-};
-
-function SidebarLink({ href, label, icon: Icon, pathname }: SidebarLinkProps) {
-    return (
+    const renderLink = (item: NavItem) => (
         <Link
-            href={href}
+            key={item.href}
+            href={item.href}
             className={cn(
                 "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium",
-                pathname === href
-                    ? "bg-gray-100 text-black"
-                    : "hover:bg-gray-50 text-muted-foreground"
+                pathname === item.href
+                    ? "bg-muted text-foreground"
+                    : "hover:bg-muted/60 text-muted-foreground"
             )}
         >
-            <Icon className="w-4 h-4" />
-            {label}
+            <item.icon className="w-4 h-4" />
+            {item.label}
         </Link>
+    );
+
+    if (!isMounted || !role) return null;
+
+    const allItems =
+        [
+            ...(navItemsByRole[role === "ADMIN" ? "ADMIN" : role] ?? []),
+            ...(role === "ADMIN" || role === "SELLER" ? navItemsByRole.SELLER : []),
+            ...navItemsByRole.BUYER,
+        ] as (NavItem | { label: string; children: NavItem[] })[];
+
+    return (
+        <>
+            {/* Desktop Sidebar */}
+            <aside className="hidden md:flex w-64 border-r h-full p-6 bg-background flex-col">
+                <h2 className="text-lg font-medium mb-6 text-muted-foreground">
+                    {name ? `Hello, ${name}` : "Welcome!"}
+                </h2>
+                <nav className="space-y-2">
+                    {allItems.map((item) =>
+                        "children" in item ? (
+                            <Accordion key={item.label} type="single" collapsible>
+                                <AccordionItem value={item.label}>
+                                    <AccordionTrigger className="px-3 py-2 rounded-md hover:bg-muted/50 text-sm font-medium">
+                                        <div className="flex items-center gap-2">
+                                            {item.children[0]?.icon && (
+                                                (() => {
+                                                    const Icon = item.children[0].icon;
+                                                    return <Icon className="w-4 h-4" />;
+                                                })()
+                                            )}
+                                            {item.label}
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="ml-4 mt-1 space-y-1">
+                                        {item.children.map(renderLink)}
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
+                        ) : (
+                            renderLink(item)
+                        )
+                    )}
+                </nav>
+            </aside>
+
+            {/* Mobile Sheet */}
+            <Sheet>
+                <SheetTrigger className="md:hidden p-4">
+                    <Menu className="w-6 h-6" />
+                </SheetTrigger>
+                <SheetContent side="left" className="w-64 p-6">
+                    <SheetTitle className="sr-only">Sidebar Navigation</SheetTitle>
+                    <h2 className="text-lg font-medium mb-6 text-muted-foreground">
+                        {name ? `Hello, ${name}` : "Welcome!"}
+                    </h2>
+                    <nav className="space-y-2">
+                        {allItems.map((item) =>
+                            "children" in item ? (
+                                <Accordion key={item.label} type="single" collapsible>
+                                    <AccordionItem value={item.label}>
+                                        <AccordionTrigger className="px-3 py-2 rounded-md hover:bg-muted/50 text-sm font-medium">
+                                            <div className="flex items-center gap-2">
+                                                {item.children[0]?.icon && (
+                                                    (() => {
+                                                        const Icon = item.children[0].icon;
+                                                        return <Icon className="w-4 h-4" />;
+                                                    })()
+                                                )}
+                                                {item.label}
+                                            </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="ml-4 mt-1 space-y-1">
+                                            {item.children.map((child) => (
+                                                <SheetClose key={child.href} asChild>
+                                                    {renderLink(child)}
+                                                </SheetClose>
+                                            ))}
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
+                            ) : (
+                                <SheetClose key={item.href} asChild>
+                                    {renderLink(item)}
+                                </SheetClose>
+                            )
+                        )}
+                    </nav>
+                </SheetContent>
+            </Sheet>
+        </>
     );
 }

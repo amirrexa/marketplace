@@ -16,8 +16,8 @@ export default async function Navbar() {
     });
 
     return (
-        <header className="flex items-center justify-between px-6 py-4 border-b bg-white">
-            <h1 className="text-lg font-bold">Digital Marketplace</h1>
+        <header className="flex items-center justify-between px-6 py-4 border-b bg-white dark:bg-zinc-950 dark:border-zinc-800">
+            <h1 className="text-lg font-bold text-foreground">Digital Marketplace</h1>
             <NavbarClientActions name={user?.name ?? "User"} />
         </header>
     );
