@@ -9,6 +9,9 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import EditProductModal from "@/components/dashboard/EditProductModal";
 import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import DeleteProductModal from "@/components/dashboard/DeleteProductModal";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Product = {
     id: string;
@@ -16,16 +19,19 @@ type Product = {
     description: string;
     price: number;
     fileUrl: string;
+    status: string;
 };
 
 export default function SellerDashboardPage() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [price, setPrice] = useState("");
+    const [status, setStatus] = useState("FOR_SALE");
     const [file, setFile] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
     const [editOpen, setEditOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
 
@@ -50,6 +56,7 @@ export default function SellerDashboardPage() {
         formData.append("title", title);
         formData.append("description", description);
         formData.append("price", price);
+        formData.append("status", status);
         formData.append("file", file);
 
         const res = await fetch("/api/products", {
@@ -96,6 +103,19 @@ export default function SellerDashboardPage() {
                             />
                         </div>
                         <div>
+                            <Label>Status</Label>
+                            <Select value={status} onValueChange={setStatus}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="FOR_SALE">For Sale</SelectItem>
+                                    <SelectItem value="ON_SALE">On Sale</SelectItem>
+                                    <SelectItem value="NOT_AVAILABLE">Not Available</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
                             <Label>Product Image</Label>
                             <Input
                                 type="file"
@@ -120,7 +140,10 @@ export default function SellerDashboardPage() {
                             alt={product.title}
                             className="rounded-md mb-3 object-cover w-full h-40"
                         />
-                        <h3 className="text-lg font-semibold">{product.title}</h3>
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-lg font-semibold">{product.title}</h3>
+                            <Badge variant={product.status === "ON_SALE" ? "default" : product.status === "FOR_SALE" ? "secondary" : product.status === "NOT_AVAILABLE" ? "destructive" : 'default'}>{product.status}</Badge>
+                        </div>
                         <p className="text-muted-foreground text-sm">${product.price.toFixed(2)}</p>
                         <div className="flex justify-between items-center">
                             <Button
@@ -137,17 +160,9 @@ export default function SellerDashboardPage() {
                             <Button
                                 variant="destructive"
                                 className="mt-3"
-                                onClick={async () => {
-                                    const res = await fetch(`/api/products/${product.id}`, {
-                                        method: "DELETE",
-                                    });
-
-                                    if (res.ok) {
-                                        toast.success("Product deleted");
-                                        fetchProducts(); // Re-fetch updated list
-                                    } else {
-                                        toast.error("Failed to delete product");
-                                    }
+                                onClick={() => {
+                                    setSelectedProduct(product)
+                                    setDeleteOpen(true)
                                 }}
                             >
                                 Delete
@@ -158,12 +173,31 @@ export default function SellerDashboardPage() {
                 ))}
             </section>
             {selectedProduct && (
-                <EditProductModal
-                    open={editOpen}
-                    onClose={() => setEditOpen(false)}
-                    product={selectedProduct}
-                    onUpdated={fetchProducts}
-                />
+                <>
+                    <DeleteProductModal
+                        open={!!selectedProduct && deleteOpen}
+                        onClose={() => setSelectedProduct(null)}
+                        onConfirm={async () => {
+                            const res = await fetch(`/api/products/${selectedProduct.id}`, {
+                                method: "DELETE",
+                            });
+
+                            if (res.ok) {
+                                toast.success("Product deleted");
+                                fetchProducts(); // Re-fetch updated list
+                            } else {
+                                toast.error("Failed to delete product");
+                            }
+                        }}
+                        productTitle={selectedProduct?.title}
+                    />
+                    <EditProductModal
+                        open={editOpen}
+                        onClose={() => setEditOpen(false)}
+                        product={selectedProduct}
+                        onUpdated={fetchProducts}
+                    />
+                </>
             )}
 
         </main>
