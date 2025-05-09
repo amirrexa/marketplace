@@ -52,18 +52,18 @@ export default function NavbarClientActions({ name }: { name?: string }) {
             </Link>
 
             <Link href="/dashboard/profile">
-                <UserCircle className="w-5 h-5 hover:text-foreground" />
+                <UserCircle className="w-5 h-5 text-muted-foreground hover:text-foreground" />
             </Link>
 
-            <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-                {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            <Button variant="outline" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+                {theme === "dark" ? <Sun className="w-5 h-5 text-muted-foreground hover:text-foreground" /> : <Moon className="w-5 h-5 text-muted-foreground hover:text-foreground" />}
             </Button>
 
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
-                    <button>
+                    <Button variant={"ghost"} size={"icon"}>
                         <LogOut className="w-5 h-5 text-red-500 hover:text-red-700" />
-                    </button>
+                    </Button>
                 </DialogTrigger>
                 <DialogContent>
                     <DialogHeader>
