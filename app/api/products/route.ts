@@ -9,11 +9,9 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// 🔍 GET all products (admins see all, sellers see their own)
 export async function GET() {
     const cookieStore = cookies();
     const token = (await cookieStore).get("token")?.value;
-
     const payload = verifyJwt(token || "");
 
     if (!payload || typeof payload !== "object" || !("id" in payload) || !("role" in payload)) {
@@ -28,7 +26,6 @@ export async function GET() {
     return Response.json({ products });
 }
 
-// 📦 POST a new product with file upload
 export async function POST(req: Request) {
     try {
         const cookieStore = cookies();
@@ -49,6 +46,7 @@ export async function POST(req: Request) {
         const title = formData.get("title") as string;
         const description = formData.get("description") as string;
         const price = parseFloat(formData.get("price") as string);
+        const status = (formData.get("status") as string) || "FOR_SALE";
         const file = formData.get("file") as File;
 
         if (!title || !description || !price || !file) {
@@ -78,6 +76,7 @@ export async function POST(req: Request) {
                 price,
                 fileUrl: publicUrl,
                 sellerId: payload.id,
+                status: status as any, // assume validation via frontend
             },
         });
 

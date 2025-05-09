@@ -14,7 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
-          <Toaster position="top-right" />
+          <Toaster position="top-right" theme="system" swipeDirections={["right", "left", "top", "bottom"]} closeButton />
         </ThemeProvider>
       </body>
     </html>

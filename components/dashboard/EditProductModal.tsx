@@ -13,6 +13,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useState } from "react";
+import {
+    Select,
+    SelectTrigger,
+    SelectValue,
+    SelectContent,
+    SelectItem,
+} from "@/components/ui/select";
 
 export default function EditProductModal({
     open,
@@ -27,20 +34,22 @@ export default function EditProductModal({
         title: string;
         description: string;
         price: number;
+        status: string;
     };
     onUpdated: () => void;
 }) {
     const [title, setTitle] = useState(product.title);
     const [description, setDescription] = useState(product.description);
     const [price, setPrice] = useState(product.price.toString());
+    const [status, setStatus] = useState(product.status);
     const [loading, setLoading] = useState(false);
 
     const handleUpdate = async () => {
         setLoading(true);
-        const res = await fetch(`/api/products/${product.id}`, {
+        const res = await fetch(`/api/admin/products/${product.id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title, description, price }),
+            body: JSON.stringify({ title, description, price, status }),
         });
 
         const data = await res.json();
@@ -80,6 +89,19 @@ export default function EditProductModal({
                             value={price}
                             onChange={(e) => setPrice(e.target.value)}
                         />
+                    </div>
+                    <div>
+                        <Label>Status</Label>
+                        <Select value={status} onValueChange={setStatus}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="FOR_SALE">For Sale</SelectItem>
+                                <SelectItem value="ON_SALE">On Sale</SelectItem>
+                                <SelectItem value="NOT_AVAILABLE">Not Available</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
                 <DialogFooter>

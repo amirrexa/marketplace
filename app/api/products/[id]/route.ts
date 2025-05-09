@@ -27,7 +27,6 @@ export async function DELETE(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
     const id = req.nextUrl.pathname.split("/").pop();
-
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
     const payload = token ? await verifyJwtEdge(token) : null;
@@ -37,9 +36,9 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, description, price } = body;
+    const { title, description, price, status } = body;
 
-    if (!title || !description || !price) {
+    if (!title || !description || !price || !status) {
         return Response.json({ message: "Missing fields" }, { status: 400 });
     }
 
@@ -55,6 +54,7 @@ export async function PATCH(req: NextRequest) {
             title,
             description,
             price: parseFloat(price),
+            status,
         },
     });
 

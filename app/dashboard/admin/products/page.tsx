@@ -23,12 +23,15 @@ import {
 import { format } from "date-fns";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
 import DeleteProductModal from "@/components/dashboard/DeleteProductModal";
+import EditProductModal from "@/components/dashboard/EditProductModal";
+import { Badge } from "@/components/ui/badge";
 
 interface Product {
     id: string;
     title: string;
+    description: string;
     price: number;
     fileUrl: string;
     createdAt: string;
@@ -36,6 +39,7 @@ interface Product {
         name: string | null;
         email: string;
     };
+    status: string;
 }
 
 export default function AdminProductsPage() {
@@ -46,26 +50,27 @@ export default function AdminProductsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const pageSize = 10;
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const res = await fetch("/api/admin/products");
-                const data = await res.json();
+    const fetchProducts = async () => {
+        try {
+            const res = await fetch("/api/admin/products");
+            const data = await res.json();
 
-                if (res.ok) {
-                    setProducts(data.products);
-                } else {
-                    toast.error(data.message || "Failed to fetch products");
-                }
-            } catch {
-                toast.error("Server error");
-            } finally {
-                setIsLoading(false);
+            if (res.ok) {
+                setProducts(data.products);
+            } else {
+                toast.error(data.message || "Failed to fetch products");
             }
-        };
+        } catch {
+            toast.error("Server error");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchProducts();
     }, []);
 
@@ -146,7 +151,7 @@ export default function AdminProductsPage() {
                                     <TableHead>Title</TableHead>
                                     <TableHead>Price</TableHead>
                                     <TableHead>Seller</TableHead>
-                                    <TableHead>Email</TableHead>
+                                    <TableHead>Status</TableHead>
                                     <TableHead>Date</TableHead>
                                     <TableHead>Actions</TableHead>
                                 </TableRow>
@@ -154,23 +159,46 @@ export default function AdminProductsPage() {
                             <TableBody>
                                 {paginated.map((product) => (
                                     <TableRow key={product.id}>
-                                        <TableCell>
+                                        <TableCell className="h-14">
                                             <Image
                                                 src={product.fileUrl}
                                                 alt={product.title}
                                                 width={60}
-                                                height={60}
-                                                className="rounded-md object-cover"
+                                                height={32}
+                                                className="rounded-md object-contain h-full w-full"
                                             />
                                         </TableCell>
                                         <TableCell>{product.title}</TableCell>
                                         <TableCell>${product.price.toFixed(2)}</TableCell>
-                                        <TableCell>{product.seller.name || "-"}</TableCell>
-                                        <TableCell>{product.seller.email}</TableCell>
                                         <TableCell>
-                                            {format(new Date(product.createdAt), "yyyy-MM-dd")}
+                                            <div className="flex flex-col gap-1">
+                                                <span>
+                                                    {product.seller.name || "-"}
+                                                </span>
+                                                <span className="text-muted-foreground">
+                                                    {product.seller.email}
+
+                                                </span>
+                                            </div>
                                         </TableCell>
                                         <TableCell>
+                                            <Badge variant={product.status === "ON_SALE" ? "default" : product.status === "FOR_SALE" ? "secondary" : product.status === "NOT_AVAILABLE" ? "destructive" : 'default'}>{product.status}</Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            {format(new Date(product.createdAt), "yyyy-MM-dd, HH:mm")}
+                                        </TableCell>
+                                        <TableCell className="flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                onClick={() => {
+                                                    setSelectedProduct(product);
+                                                    setIsEditing(true);
+                                                }}
+                                            >
+                                                <Pencil className="w-4 h-4 mr-1" />
+                                                Edit
+                                            </Button>
                                             <Button
                                                 size="sm"
                                                 variant="destructive"
@@ -212,12 +240,31 @@ export default function AdminProductsPage() {
                 )}
             </Card>
 
-            <DeleteProductModal
-                open={!!selectedProduct}
-                onClose={() => setSelectedProduct(null)}
-                onConfirm={handleDelete}
-                productTitle={selectedProduct?.title}
-            />
+            {selectedProduct && (
+                <>
+                    <DeleteProductModal
+                        open={!!selectedProduct && !isEditing}
+                        onClose={() => setSelectedProduct(null)}
+                        onConfirm={handleDelete}
+                        productTitle={selectedProduct?.title}
+                    />
+                    <EditProductModal
+                        open={isEditing}
+                        onClose={() => {
+                            setIsEditing(false);
+                            setSelectedProduct(null);
+                        }}
+                        product={{
+                            id: selectedProduct.id,
+                            title: selectedProduct.title,
+                            description: selectedProduct.description,
+                            price: selectedProduct.price,
+                            status: selectedProduct.status
+                        }}
+                        onUpdated={fetchProducts}
+                    />
+                </>
+            )}
         </main>
     );
 }

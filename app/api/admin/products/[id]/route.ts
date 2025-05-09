@@ -36,18 +36,23 @@ export async function PATCH(req: NextRequest) {
         return Response.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    const id = req.nextUrl.pathname.split("/").pop(); // ✅ Extract product ID
+    const id = req.nextUrl.pathname.split("/").pop();
+    const { title, price, description, status } = await req.json();
 
-    const { title, price } = await req.json();
-
-    if (!title || !price) {
+    if (!title || !price || !description || !status) {
         return Response.json({ message: "Missing fields" }, { status: 400 });
     }
 
     await prisma.product.update({
         where: { id },
-        data: { title, price: parseFloat(price) },
+        data: {
+            title,
+            price: parseFloat(price),
+            description,
+            status,
+        },
     });
 
     return Response.json({ message: "Product updated" });
 }
+

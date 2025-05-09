@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { LogOut, UserCircle, Sun, Moon } from "lucide-react";
+import { LogOut, UserCircle, Sun, Moon, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -15,11 +15,15 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import MobileMenu from "./MobileMenu";
+import { useAtom } from "jotai";
+import { cartAtom } from "@/lib/atoms/cart";
+import { Badge } from "../ui/badge";
 
 export default function NavbarClientActions({ name }: { name?: string }) {
     const router = useRouter();
     const [open, setOpen] = useState(false);
     const { theme, setTheme } = useTheme();
+    const [cart] = useAtom(cartAtom);
 
     const handleLogout = async () => {
         await fetch("/api/logout", { method: "POST" });
@@ -34,6 +38,18 @@ export default function NavbarClientActions({ name }: { name?: string }) {
             </div>
 
             <span className="text-sm text-muted-foreground">{name}</span>
+
+            <Link href="/dashboard/buyer/cart" className="relative">
+                <ShoppingCart className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+                {cart.length > 0 && (
+                    <Badge
+                        className="absolute -top-2 -right-2 px-1.5 py-0.5 text-xs"
+                        variant="secondary"
+                    >
+                        {cart.length}
+                    </Badge>
+                )}
+            </Link>
 
             <Link href="/dashboard/profile">
                 <UserCircle className="w-5 h-5 hover:text-foreground" />

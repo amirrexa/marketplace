@@ -71,7 +71,6 @@ export default function CartPage() {
 
     return (
         <main className="max-w-5xl mx-auto px-4 py-10">
-            <h1 className="text-3xl font-bold mb-6 text-center">🛒 Your Cart</h1>
 
             {loading ? (
                 <p className="text-center text-muted-foreground">Loading...</p>

@@ -29,6 +29,13 @@ model Product {
   seller      User     @relation("UserProducts", fields: [sellerId], references: [id])
   createdAt   DateTime @default(now())
   orders      Order[]
+    status      ProductStatus @default(FOR_SALE)
+}
+
+enum ProductStatus {
+  FOR_SALE
+  ON_SALE
+  NOT_AVAILABLE
 }
 
 model Order {

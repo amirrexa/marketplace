@@ -37,7 +37,7 @@ export default function BuyerDashboardPage() {
 
     return (
         <main className="max-w-5xl mx-auto px-4 py-10">
-            <h1 className="text-3xl font-bold mb-6 text-center">🛍 Browse Products</h1>
+            <h1 className="text-3xl font-bold mb-6 text-center">Browse Products</h1>
 
             <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {products.map((product) => {
