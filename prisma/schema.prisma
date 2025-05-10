@@ -7,6 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model User {
   id        String    @id @default(uuid())
   email     String    @unique
@@ -16,7 +17,6 @@ model User {
   createdAt DateTime  @default(now())
   orders    Order[]   @relation("BuyerOrders")
     name      String?
-
 }
 
 model Product {
@@ -28,8 +28,8 @@ model Product {
   sellerId    String
   seller      User     @relation("UserProducts", fields: [sellerId], references: [id])
   createdAt   DateTime @default(now())
-  orders      Order[]
-    status      ProductStatus @default(FOR_SALE)
+  status      ProductStatus @default(FOR_SALE)
+  orders      Order[]  @relation("OrderProducts")
 }
 
 enum ProductStatus {
@@ -41,9 +41,8 @@ enum ProductStatus {
 model Order {
   id        String      @id @default(uuid())
   buyerId   String
-  productId String
   buyer     User        @relation("BuyerOrders", fields: [buyerId], references: [id])
-  product   Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  products  Product[]   @relation("OrderProducts")
   createdAt DateTime    @default(now())
   status    OrderStatus @default(PENDING)
 }

@@ -13,14 +13,23 @@ export async function GET(req: NextRequest) {
     const orders = await prisma.order.findMany({
         orderBy: { createdAt: "desc" },
         include: {
-            product: {
-                select: { title: true },
+            products: {
+                select: {
+                    id: true,
+                    title: true,
+                    price: true,
+                    fileUrl: true,
+                },
             },
             buyer: {
-                select: { name: true, email: true },
+                select: {
+                    name: true,
+                    email: true,
+                },
             },
         },
     });
 
+    // Don't group — return each order as-is
     return Response.json({ orders });
 }

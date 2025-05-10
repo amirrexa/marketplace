@@ -18,18 +18,28 @@ import MobileMenu from "./MobileMenu";
 import { useAtom } from "jotai";
 import { cartAtom } from "@/lib/atoms/cart";
 import { Badge } from "../ui/badge";
+import { toast } from "sonner";
 
 export default function NavbarClientActions({ name }: { name?: string }) {
     const router = useRouter();
     const [open, setOpen] = useState(false);
     const { theme, setTheme } = useTheme();
     const [cart] = useAtom(cartAtom);
+    const [logoutLoading, setLogoutLoading] = useState(false)
 
     const handleLogout = async () => {
-        await fetch("/api/logout", { method: "POST" });
-        setOpen(false);
-        router.push("/login");
+        setLogoutLoading(true);
+        try {
+            await fetch("/api/logout", { method: "POST" });
+            setOpen(false);
+            router.push("/login");
+        } catch {
+            toast.error("Failed to log out. Please try again.");
+        } finally {
+            setLogoutLoading(false);
+        }
     };
+
 
     return (
         <div className="flex items-center gap-4">
@@ -74,8 +84,8 @@ export default function NavbarClientActions({ name }: { name?: string }) {
                         <Button variant="secondary" onClick={() => setOpen(false)}>
                             Cancel
                         </Button>
-                        <Button variant="destructive" onClick={handleLogout}>
-                            Log out
+                        <Button variant="destructive" onClick={handleLogout} disabled={logoutLoading}>
+                            {!logoutLoading ? "Log out" : "Logging out..."}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

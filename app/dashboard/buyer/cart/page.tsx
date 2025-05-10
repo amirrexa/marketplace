@@ -47,27 +47,23 @@ export default function CartPage() {
         if (cartItems.length === 0) return toast.error("Your cart is empty.");
         setSubmitting(true);
 
-        const failed: string[] = [];
+        const res = await fetch("/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productIds: cartItems.map((item) => item.id) }),
+        });
 
-        for (const item of cartItems) {
-            const res = await fetch("/api/orders", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productId: item.id }),
-            });
-
-            if (!res.ok) failed.push(item.title);
-        }
-
+        const data = await res.json();
         setSubmitting(false);
 
-        if (failed.length > 0) {
-            toast.error(`Some failed: ${failed.join(", ")}`);
+        if (!res.ok) {
+            toast.error(data.message || "Something went wrong.");
         } else {
-            toast.success("All products requested ✅");
+            toast.success(data.message || "All products requested");
             clearCart();
         }
     };
+
 
     return (
         <main className="max-w-5xl mx-auto px-4 py-10">
