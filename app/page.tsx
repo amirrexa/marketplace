@@ -95,7 +95,7 @@ export default function HomePage() {
             alt="Marketplace preview"
             width={500}
             height={400}
-            className="w-full h-auto object-contain"
+            className="w-full h-auto object-contain rounded-lg"
             priority
           />
         </MotionDiv>
