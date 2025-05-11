@@ -31,14 +31,13 @@ export default function MobileMenu() {
     }, []);
 
     const allItems =
-        role
-            ? [
-                ...(navItemsByRole[role === "ADMIN" ? "ADMIN" : role] ?? []),
-                ...(role === "ADMIN" || role === "SELLER" ? navItemsByRole.SELLER : []),
-                ...navItemsByRole.BUYER,
-            ]
-            : [];
-
+        role === "ADMIN"
+            ? [...navItemsByRole.ADMIN, ...navItemsByRole.SELLER, ...navItemsByRole.BUYER]
+            : role === "SELLER"
+                ? [...navItemsByRole.SELLER, ...navItemsByRole.BUYER]
+                : role === "BUYER"
+                    ? [...navItemsByRole.BUYER]
+                    : [];
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>

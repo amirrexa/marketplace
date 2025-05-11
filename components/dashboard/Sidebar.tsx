@@ -59,11 +59,14 @@ export default function Sidebar() {
     if (!isMounted || !role) return null;
 
     const allItems =
-        [
-            ...(navItemsByRole[role === "ADMIN" ? "ADMIN" : role] ?? []),
-            ...(role === "ADMIN" || role === "SELLER" ? navItemsByRole.SELLER : []),
-            ...navItemsByRole.BUYER,
-        ] as (NavItem | { label: string; children: NavItem[] })[];
+        role === "ADMIN"
+            ? [...navItemsByRole.ADMIN, ...navItemsByRole.SELLER, ...navItemsByRole.BUYER]
+            : role === "SELLER"
+                ? [...navItemsByRole.SELLER, ...navItemsByRole.BUYER]
+                : role === "BUYER"
+                    ? [...navItemsByRole.BUYER]
+                    : [];
+
 
     return (
         <aside className="hidden md:block w-64 border-r h-full p-6 bg-white dark:bg-zinc-950">
