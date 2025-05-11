@@ -1,13 +1,76 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Digital Marketplace | Buy & Sell with Ease",
+  title: "Digital Marketplace | Buy & Sell Real Products",
   description:
-    "A minimal yet powerful platform to browse, sell, and manage real physical products. Built for buyers, sellers, and admins.",
+    "A powerful, minimal platform to browse, sell, and manage physical products with role-based dashboards for buyers, sellers, and admins.",
+  metadataBase: new URL(`${process.env.WEBSITE_URL}`),
+  keywords: [
+    "digital marketplace",
+    "buy products online",
+    "sell real products",
+    "ecommerce platform",
+    "buyer seller admin dashboard",
+    "shopping cart",
+    "product upload",
+    "physical goods",
+    "secure checkout",
+  ],
+  authors: [
+    { name: "Digital Marketplace Team", url: `${process.env.WEBSITE_URL}` },
+  ],
+  creator: "Digital Marketplace Team",
+  openGraph: {
+    title: "Digital Marketplace | Buy & Sell Real Products",
+    description:
+      "Seamlessly browse, upload, and manage real products in a modern, minimal marketplace for buyers, sellers, and admins.",
+    url: `${process.env.WEBSITE_URL}`,
+    siteName: "Digital Marketplace",
+    images: [
+      {
+        url: "/og-dark.png", // 🌙 for dark mode
+        width: 1200,
+        height: 630,
+        alt: "Digital Marketplace Preview (Dark)",
+        type: "image/png",
+      },
+      {
+        url: "/og-light.png", // ☀️ for light mode
+        width: 1200,
+        height: 630,
+        alt: "Digital Marketplace Preview (Light)",
+        type: "image/png",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Digital Marketplace | Buy & Sell Real Products",
+    description:
+      "Role-based dashboards, cart functionality, secure checkout, and product uploads. Built for modern commerce.",
+    creator: "@amirrexa", // 🐦 Replace if applicable
+    images: ["/og-dark.png", "/og-light.png"],
+  },
+  icons: {
+    icon: [
+      { url: "/favicon-dark.ico", media: "(prefers-color-scheme: dark)" },
+      { url: "/favicon-light.ico", media: "(prefers-color-scheme: light)" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
 };
+
 
 export default function HomePage() {
   return (
@@ -19,7 +82,8 @@ export default function HomePage() {
             Buy & Sell Real Products with Confidence
           </h1>
           <p className="text-muted-foreground mt-4 text-lg">
-            A platform built for modern sellers and buyers. Role-based dashboard, order management, and fast uploads.
+            A platform built for modern sellers and buyers. Role-based dashboard,
+            order management, and fast uploads.
           </p>
           <div className="mt-6 flex flex-wrap justify-center md:justify-start gap-4">
             <Link href="/register">
@@ -36,7 +100,7 @@ export default function HomePage() {
         {/* Hero Image */}
         <div className="max-w-md w-full">
           <Image
-            src="/hero.png" // 🖼 Replace with your own image later
+            src="/hero.png" // ✅ Replace this with a high-quality SEO-optimized image
             alt="Marketplace preview"
             width={500}
             height={400}
