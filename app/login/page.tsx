@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { PasswordInput } from "@/components/ui/passwordInput";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -73,7 +74,7 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
-                <Input
+                <PasswordInput
                     type="password"
                     placeholder="Password"
                     value={password}
