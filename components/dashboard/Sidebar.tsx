@@ -60,7 +60,7 @@ export default function Sidebar() {
 
     const allItems =
         role === "ADMIN"
-            ? [...navItemsByRole.ADMIN, ...navItemsByRole.SELLER, ...navItemsByRole.BUYER]
+            ? [...navItemsByRole.ADMIN, ...navItemsByRole.BUYER]
             : role === "SELLER"
                 ? [...navItemsByRole.SELLER, ...navItemsByRole.BUYER]
                 : role === "BUYER"

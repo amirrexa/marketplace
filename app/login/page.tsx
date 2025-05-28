@@ -6,12 +6,15 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { PasswordInput } from "@/components/ui/passwordInput";
+import { useSetAtom } from "jotai";
+import { userAtom } from "@/lib/atoms/user";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const setUser = useSetAtom(userAtom);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,11 +46,12 @@ export default function LoginPage() {
                 return;
             }
 
-            const role = meData.user.role;
+            const user = meData.user; // { id, email, role }
+            setUser(user); // Store full user object in userAtom
 
-            switch (role) {
+            switch (user.role) {
                 case "SELLER":
-                    router.push("/dashboard/seller");
+                    router.push("/dashboard/seller/products");
                     break;
                 case "ADMIN":
                     router.push("/dashboard/admin");

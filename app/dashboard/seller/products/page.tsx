@@ -22,7 +22,7 @@ type Product = {
     status: string;
 };
 
-export default function SellerDashboardPage() {
+export default function SellerProductsPage() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [price, setPrice] = useState("");
@@ -34,10 +34,8 @@ export default function SellerDashboardPage() {
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-
-
     const fetchProducts = async () => {
-        const res = await fetch("/api/products");
+        const res = await fetch("/api/seller/products");
         const data = await res.json();
         setProducts(data.products || []);
     };
@@ -59,7 +57,7 @@ export default function SellerDashboardPage() {
         formData.append("status", status);
         formData.append("file", file);
 
-        const res = await fetch("/api/products", {
+        const res = await fetch("/api/seller/products", {
             method: "POST",
             body: formData,
         });
@@ -168,17 +166,19 @@ export default function SellerDashboardPage() {
                                 Delete
                             </Button>
                         </div>
-
                     </Card>
                 ))}
             </section>
             {selectedProduct && (
                 <>
                     <DeleteProductModal
-                        open={!!selectedProduct && deleteOpen}
-                        onClose={() => setSelectedProduct(null)}
+                        open={deleteOpen}
+                        onClose={() => {
+                            setSelectedProduct(null)
+                            setDeleteOpen(false)
+                        }}
                         onConfirm={async () => {
-                            const res = await fetch(`/api/products/${selectedProduct.id}`, {
+                            const res = await fetch(`/api/seller/products/${selectedProduct.id}`, {
                                 method: "DELETE",
                             });
 
@@ -193,13 +193,15 @@ export default function SellerDashboardPage() {
                     />
                     <EditProductModal
                         open={editOpen}
-                        onClose={() => setEditOpen(false)}
+                        onClose={() => {
+                            setSelectedProduct(null)
+                            setEditOpen(false)
+                        }}
                         product={selectedProduct}
                         onUpdated={fetchProducts}
                     />
                 </>
             )}
-
         </main>
     );
 }

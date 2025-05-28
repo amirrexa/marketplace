@@ -8,10 +8,13 @@ export function signJwt(payload: object) {
 }
 
 export function verifyJwt(token: string) {
+  console.log("Token:", token ? token.slice(0, 10) + "..." : "No token");
   try {
-    return jwt.verify(token, secret);
+    const payload = jwt.verify(token, secret);
+    console.log("Payload:", payload);
+    return payload;
   } catch (err) {
-    console.error("❌ Invalid JWT:", err);
+    console.error("JWT Error:", err);
     return null;
   }
 }

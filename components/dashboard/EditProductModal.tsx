@@ -20,6 +20,8 @@ import {
     SelectContent,
     SelectItem,
 } from "@/components/ui/select";
+import { useAtom } from "jotai";
+import { userAtom } from "@/lib/atoms/user";
 
 export default function EditProductModal({
     open,
@@ -43,10 +45,17 @@ export default function EditProductModal({
     const [price, setPrice] = useState(product.price.toString());
     const [status, setStatus] = useState(product.status);
     const [loading, setLoading] = useState(false);
+    const [user] = useAtom(userAtom);
 
     const handleUpdate = async () => {
+        if (!user?.role) {
+            toast.error("User role not determined");
+            return;
+        }
+
         setLoading(true);
-        const res = await fetch(`/api/admin/products/${product.id}`, {
+        const apiRoute = user.role === "SELLER" ? `/api/seller/products/${product.id}` : `/api/admin/products/${product.id}`;
+        const res = await fetch(apiRoute, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ title, description, price, status }),
@@ -105,7 +114,7 @@ export default function EditProductModal({
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={handleUpdate} disabled={loading}>
+                    <Button onClick={handleUpdate} disabled={loading || !user?.role}>
                         {loading ? "Saving..." : "Save Changes"}
                     </Button>
                 </DialogFooter>

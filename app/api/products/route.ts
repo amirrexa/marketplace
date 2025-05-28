@@ -19,7 +19,6 @@ export async function GET() {
     }
 
     const products = await prisma.product.findMany({
-        where: payload.role === "SELLER" ? { sellerId: payload.id } : undefined,
         orderBy: { createdAt: "desc" },
     });
 

@@ -24,7 +24,14 @@ export const navItemsByRole: Record<Role, NavItem[] | { label: string; icon: Rea
         { href: "/dashboard/profile", label: "Profile", icon: User },
     ],
     SELLER: [
-        { href: "/dashboard/seller", label: "Seller Dashboard", icon: Store },
+        {
+            label: "Seller",
+            icon: Store,
+            children: [
+                { href: "/dashboard/seller/products", label: "Products", icon: Package },
+                { href: "/dashboard/seller/orders", label: "Orders", icon: Receipt },
+            ],
+        },
     ],
     ADMIN: [
         {
