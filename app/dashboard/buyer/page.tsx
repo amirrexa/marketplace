@@ -8,77 +8,87 @@ import { useAtom, useSetAtom } from "jotai";
 import { cartAtom, addToCartAtom, removeFromCartAtom } from "@/lib/atoms/cart";
 import Image from "next/image";
 
-
 type Product = {
-    id: string;
-    title: string;
-    description: string;
-    price: number;
-    fileUrl: string;
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  fileUrl: string;
+  status: string;
 };
 
 export default function BuyerDashboardPage() {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [cart] = useAtom(cartAtom);
-    const addToCart = useSetAtom(addToCartAtom);
-    const removeFromCart = useSetAtom(removeFromCartAtom);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [cart] = useAtom(cartAtom);
+  const addToCart = useSetAtom(addToCartAtom);
+  const removeFromCart = useSetAtom(removeFromCartAtom);
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      const res = await fetch("/api/products");
+      const data = await res.json();
+      // Filter only available products
+      const availableProducts = (data.products || []).filter(
+        (p: Product) => ["FOR_SALE", "ON_SALE"].includes(p.status)
+      );
+      setProducts(availableProducts);
+      setLoading(false);
+    };
 
+    fetchProducts();
+  }, []);
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            const res = await fetch("/api/products");
-            const data = await res.json();
-            setProducts(data.products || []);
-        };
+  return (
+    <main className="max-w-5xl mx-auto px-4 py-10">
+      <h1 className="text-3xl font-bold mb-6 text-center">Browse Products</h1>
 
-        fetchProducts();
-    }, []);
+      {loading ? (
+        <p className="text-center text-muted-foreground">Loading...</p>
+      ) : products.length === 0 ? (
+        <p className="text-center text-muted-foreground">No products available.</p>
+      ) : (
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((product) => {
+            const isInCart = cart.includes(product.id);
 
-    return (
-        <main className="max-w-5xl mx-auto px-4 py-10">
-            <h1 className="text-3xl font-bold mb-6 text-center">Browse Products</h1>
+            return (
+              <Card key={product.id} className="p-4 flex flex-col justify-between">
+                <div className="relative">
+                  <Image
+                    width={500}
+                    height={400}
+                    src={product.fileUrl}
+                    alt={product.title}
+                    className="rounded-md mb-3 object-cover w-full h-40"
+                  />
+                  <h3 className="text-lg font-semibold">{product.title}</h3>
+                  <p className="text-muted-foreground text-sm">
+                    ${product.price.toFixed(2)}
+                  </p>
+                </div>
 
-            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {products.map((product) => {
-                    const isInCart = cart.includes(product.id);
-
-                    return (
-                        <Card key={product.id} className="p-4 flex flex-col justify-between">
-                            <div className="relative">
-                                <Image
-                                    width={500}
-                                    height={400}
-                                    src={product.fileUrl}
-                                    alt={product.title}
-                                    className="rounded-md mb-3 object-cover w-full h-40"
-                                />
-                                <h3 className="text-lg font-semibold">{product.title}</h3>
-                                <p className="text-muted-foreground text-sm">
-                                    ${product.price.toFixed(2)}
-                                </p>
-                            </div>
-
-                            <Button
-                                className="mt-4"
-                                variant={isInCart ? "secondary" : "default"}
-                                onClick={() => {
-                                    if (isInCart) {
-                                        removeFromCart(product.id);
-                                        toast.info("Removed from cart");
-                                    } else {
-                                        addToCart(product.id);
-                                        toast.success("Added to cart");
-                                    }
-                                }}
-                            >
-                                {isInCart ? "In Cart" : "Add to Cart"}
-                            </Button>
-                        </Card>
-                    );
-                })}
-
-            </section>
-        </main>
-    );
+                <Button
+                  className="mt-4"
+                  variant={isInCart ? "secondary" : "default"}
+                  onClick={() => {
+                    if (isInCart) {
+                      removeFromCart(product.id);
+                      toast.info("Removed from cart");
+                    } else {
+                      addToCart(product.id);
+                      toast.success("Added to cart");
+                    }
+                  }}
+                >
+                  {isInCart ? "In Cart" : "Add to Cart"}
+                </Button>
+              </Card>
+            );
+          })}
+        </section>
+      )}
+    </main>
+  );
 }

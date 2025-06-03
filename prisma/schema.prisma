@@ -16,7 +16,6 @@ model User {
   createdAt DateTime  @default(now())
   orders    Order[]   @relation("BuyerOrders")
   name      String?
-  cart      Cart?     @relation("UserCart")
 }
 
 model Product {
@@ -51,10 +50,4 @@ enum OrderStatus {
   PENDING
   COMPLETED
   CANCELED
-}
-
-model Cart {
-  userId    String    @id
-  user      User      @relation("UserCart", fields: [userId], references: [id])
-  productIds String[]
 }
