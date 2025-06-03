@@ -70,7 +70,7 @@ export default function BuyerDashboardPage() {
               <Card
                 key={product.id}
                 className={`p-4 flex flex-col justify-between transition-all duration-300 hover:scale-101 hover:shadow-lg ${
-                  isOnSale ? "bg-green-50 dark:bg-green-900/20" : "bg-white dark:bg-gray-800"
+                  isOnSale ? "bg-green-50 dark:bg-green-900/20" : ""
                 }`}
               >
                 <div>
