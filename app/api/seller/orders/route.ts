@@ -1,43 +1,34 @@
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import { verifyJwtEdge } from "@/lib/auth";
-import { NextResponse } from "next/server";
+import { verifyJwt } from "@/lib/auth";
 
 export async function GET() {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-    const payload = token ? await verifyJwtEdge(token) : null;
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
 
-    if (!payload || typeof payload !== "object" || !("id" in payload) || !("role" in payload) || payload.role !== "SELLER") {
-        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
+  if (!token) return Response.json({ message: "Unauthorized" }, { status: 401 });
 
-    const orders = await prisma.order.findMany({
-        where: {
-            products: {
-                some: {
-                    sellerId: payload.id as string,
-                },
-            },
-        },
-        include: {
-            buyer: {
-                select: {
-                    email: true,
-                    name: true,
-                },
-            },
-            products: {
-                select: {
-                    id: true,
-                    title: true,
-                    price: true,
-                    fileUrl: true,
-                },
-            },
-        },
-        orderBy: { createdAt: "desc" },
-    });
+  const payload = verifyJwt(token);
+  if (!payload || typeof payload !== "object" || !("id" in payload) || !("role" in payload)) {
+    return Response.json({ message: "Invalid token" }, { status: 401 });
+  }
 
-    return NextResponse.json({ orders });
+  if (payload.role !== "SELLER") {
+    return Response.json({ message: "Forbidden" }, { status: 403 });
+  }
+
+  const sellerId = payload.id;
+  const orders = await prisma.order.findMany({
+    where: { products: { some: { sellerId } } },
+    include: {
+      buyer: { select: { name: true, email: true } },
+      products: {
+        where: { sellerId },
+        select: { id: true, title: true, price: true, fileUrl: true },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return Response.json({ orders });
 }

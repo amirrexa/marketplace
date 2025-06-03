@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
   id        String    @id @default(uuid())
   email     String    @unique
@@ -16,7 +15,8 @@ model User {
   products  Product[] @relation("UserProducts")
   createdAt DateTime  @default(now())
   orders    Order[]   @relation("BuyerOrders")
-    name      String?
+  name      String?
+  cart      Cart?     @relation("UserCart")
 }
 
 model Product {
@@ -53,3 +53,8 @@ enum OrderStatus {
   CANCELED
 }
 
+model Cart {
+  userId    String    @id
+  user      User      @relation("UserCart", fields: [userId], references: [id])
+  productIds String[]
+}
