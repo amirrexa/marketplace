@@ -103,6 +103,8 @@ export async function POST(req: NextRequest) {
             return Response.json({ message: "Server configuration error" }, { status: 500 });
         }
 
+        const bucketName = process.env.SUPABASE_PRODUCTS_BUCKET ?? "Marketplace";
+
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
             auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
         });
@@ -113,6 +115,7 @@ export async function POST(req: NextRequest) {
             console.log("[storage] SUPABASE_URL:", process.env.SUPABASE_URL);
             console.log("[storage] bucketsError:", bucketsError);
             console.log("[storage] buckets:", buckets?.map((b) => b.name));
+            console.log("[storage] using bucket:", bucketName);
         } catch (e) {
             console.log("[storage] listBuckets threw:", e);
         }
@@ -127,7 +130,7 @@ export async function POST(req: NextRequest) {
         const bytes = new Uint8Array(await file.arrayBuffer());
 
         const { error: uploadError } = await supabase.storage
-            .from("products")
+            .from(bucketName)
             .upload(path, bytes, {
                 contentType: file.type || "application/octet-stream",
                 upsert: false,
@@ -138,7 +141,7 @@ export async function POST(req: NextRequest) {
             return Response.json({ message: `Failed to upload image: ${uploadError.message}` }, { status: 500 });
         }
 
-        const { data: publicData } = supabase.storage.from("products").getPublicUrl(path);
+        const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(path);
         const fileUrl = publicData.publicUrl;
 
         const product = await prisma.product.create({
