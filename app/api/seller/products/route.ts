@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { verifyJwtEdge } from "@/lib/auth";
@@ -74,9 +76,12 @@ export async function POST(req: NextRequest) {
         const description = formData.get("description") as string;
         const price = formData.get("price") as string;
         const status = formData.get("status") as string;
-        const file = formData.get("file") as File;
+        const file = formData.get("file");
+        if (!(file instanceof File)) {
+            return Response.json({ message: "Missing or invalid file" }, { status: 400 });
+        }
 
-        if (!title || !description || !price || !status || !file) {
+        if (!title || !description || !price || !status) {
             return Response.json({ message: "Missing required fields" }, { status: 400 });
         }
 
@@ -98,23 +103,43 @@ export async function POST(req: NextRequest) {
             return Response.json({ message: "Server configuration error" }, { status: 500 });
         }
 
-        const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+        const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+            auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+        });
+
+        // Debug: confirm the project + permissions at runtime (remove once fixed)
+        try {
+            const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+            console.log("[storage] SUPABASE_URL:", process.env.SUPABASE_URL);
+            console.log("[storage] bucketsError:", bucketsError);
+            console.log("[storage] buckets:", buckets?.map((b) => b.name));
+        } catch (e) {
+            console.log("[storage] listBuckets threw:", e);
+        }
+
         const fileExt = file.name.split(".").pop();
         if (!fileExt) {
             return Response.json({ message: "Invalid file format" }, { status: 400 });
         }
 
         const fileName = `${Date.now()}.${fileExt}`;
+        const path = `public/${fileName}`;
+        const bytes = new Uint8Array(await file.arrayBuffer());
+
         const { error: uploadError } = await supabase.storage
             .from("products")
-            .upload(`public/${fileName}`, file);
+            .upload(path, bytes, {
+                contentType: file.type || "application/octet-stream",
+                upsert: false,
+            });
 
         if (uploadError) {
             console.error("Supabase upload error:", uploadError);
             return Response.json({ message: `Failed to upload image: ${uploadError.message}` }, { status: 500 });
         }
 
-        const fileUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/products/public/${fileName}`;
+        const { data: publicData } = supabase.storage.from("products").getPublicUrl(path);
+        const fileUrl = publicData.publicUrl;
 
         const product = await prisma.product.create({
             data: {
